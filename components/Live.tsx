@@ -6,11 +6,12 @@ import DataChart from './DataChart';
 import { TemperatureIcon, TurbidityIcon, SalinityIcon, LiveIcon } from './icons/Icons';
 
 const MAX_DATA_POINTS = 20;
-const SAVE_INTERVAL = 60000;
+const SAVE_INTERVAL = 10000;
 
 const Live: React.FC = () => {
   const [liveData, setLiveData] = useState<WaterQualityRecord[]>([]);
   const [lastSavedTime, setLastSavedTime] = useState<number>(0);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const unsubscribe = subscribeToLiveData(async (newRecord) => {
@@ -44,6 +45,26 @@ const Live: React.FC = () => {
 
   const latestRecord = liveData.length > 0 ? liveData[liveData.length - 1] : null;
 
+  const manualSave = async () => {
+    if (!latestRecord || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await saveWaterQualityData({
+        timestamp: latestRecord.timestamp,
+        temperature: latestRecord.temperature,
+        turbidity: latestRecord.turbidity,
+        salinity: latestRecord.salinity,
+      });
+      setLastSavedTime(Date.now());
+      console.log('Đã lưu dữ liệu thủ công vào Firebase:', latestRecord);
+    } catch (error) {
+      console.error('Lỗi khi lưu dữ liệu thủ công:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="bg-white p-6 rounded-2xl shadow-md flex justify-between items-center">
@@ -51,12 +72,24 @@ const Live: React.FC = () => {
           <LiveIcon className="w-6 h-6 text-red-500" />
           Dữ Liệu Thời Gian Thực
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={manualSave}
+            disabled={!latestRecord || isSaving}
+            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg className={`w-5 h-5 ${isSaving ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+            {isSaving ? 'Đang lưu...' : 'Lưu dữ liệu'}
+          </button>
+          <div className="flex items-center gap-2">
             <span className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
             </span>
             <span className="text-green-600 font-semibold">Đang kết nối</span>
+          </div>
         </div>
       </div>
 

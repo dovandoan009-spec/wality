@@ -57,6 +57,7 @@ export const getHistoricalData = async (limit: number = 100): Promise<WaterQuali
     const snapshot = await get(historyQuery);
 
     if (!snapshot.exists()) {
+      console.log('Không có dữ liệu trong Firebase History');
       return [];
     }
 
@@ -74,6 +75,13 @@ export const getHistoricalData = async (limit: number = 100): Promise<WaterQuali
       });
     });
 
+    records.sort((a, b) => {
+      const timeA = new Date(a.timestamp).getTime();
+      const timeB = new Date(b.timestamp).getTime();
+      return timeA - timeB;
+    });
+
+    console.log(`Đã tải ${records.length} bản ghi từ Firebase`);
     return records;
   } catch (error) {
     console.error('Error fetching historical data:', error);

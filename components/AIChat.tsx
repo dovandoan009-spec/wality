@@ -4,20 +4,56 @@ import { WaterQualityRecord, ChatMessage } from '../types';
 import { INITIAL_CHAT_MESSAGE, SUGGESTED_PROMPTS } from '../constants';
 import { AIIcon, PredictionIcon, SendIcon } from './icons/Icons';
 import { getAIResponse } from '../services/geminiService';
+import { getHistoricalData } from '../services/firebaseService';
 
 interface AIChatProps {
   data: WaterQualityRecord[];
+  onDataRefresh?: (newData: WaterQualityRecord[]) => void;
 }
 
-const AIChat: React.FC<AIChatProps> = ({ data }) => {
+const AIChat: React.FC<AIChatProps> = ({ data, onDataRefresh }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_CHAT_MESSAGE]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [localData, setLocalData] = useState<WaterQualityRecord[]>(data);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setLocalData(data);
+  }, [data]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const refreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      const freshData = await getHistoricalData(100);
+      setLocalData(freshData);
+      if (onDataRefresh) {
+        onDataRefresh(freshData);
+      }
+
+      const refreshMessage: ChatMessage = {
+        role: 'model',
+        content: `Đã cập nhật dữ liệu mới nhất! Hiện có ${freshData.length} bản ghi từ Firebase.`,
+        timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages(prev => [...prev, refreshMessage]);
+    } catch (error) {
+      console.error('Lỗi khi làm mới dữ liệu:', error);
+      const errorMessage: ChatMessage = {
+        role: 'model',
+        content: 'Không thể tải dữ liệu mới. Vui lòng thử lại.',
+        timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleSend = async (prompt?: string) => {
     const userMessageContent = prompt || input;
@@ -34,7 +70,7 @@ const AIChat: React.FC<AIChatProps> = ({ data }) => {
     setIsLoading(true);
 
     try {
-      const aiResponseContent = await getAIResponse(userMessageContent, data);
+      const aiResponseContent = await getAIResponse(userMessageContent, localData);
       const aiMessage: ChatMessage = {
         role: 'model',
         content: aiResponseContent,
@@ -65,11 +101,19 @@ const AIChat: React.FC<AIChatProps> = ({ data }) => {
       <div className="p-5 bg-gradient-to-r from-purple-600 to-pink-500 text-white flex justify-between items-center">
         <div className="flex items-center gap-3">
           <AIIcon className="w-8 h-8" />
-          <h2 className="text-xl font-bold">Tư Vấn AI</h2>
+          <div>
+            <h2 className="text-xl font-bold">Tư Vấn AI</h2>
+            <p className="text-xs text-white/80 mt-0.5">{localData.length} bản ghi dữ liệu</p>
+          </div>
         </div>
-        <button className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
-          <PredictionIcon className="w-5 h-5" />
-          Dự đoán
+        <button
+          onClick={refreshData}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors disabled:opacity-50">
+          <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Làm mới dữ liệu
         </button>
       </div>
 

@@ -26,6 +26,10 @@ const App: React.FC = () => {
     loadHistoricalData();
   }, []);
 
+  const handleDataRefresh = (newData: WaterQualityRecord[]) => {
+    setWaterData(newData);
+  };
+
   const renderView = () => {
     if (isLoadingData) {
       return (
@@ -44,11 +48,11 @@ const App: React.FC = () => {
       case View.Dashboard:
         return <Dashboard data={waterData} setData={setWaterData} />;
       case View.AI:
-        return <AIChat data={waterData} />;
+        return <AIChat data={waterData} onDataRefresh={handleDataRefresh} />;
       case View.Live:
         return <Live />;
       default:
-        return <AIChat data={waterData} />;
+        return <AIChat data={waterData} onDataRefresh={handleDataRefresh} />;
     }
   }
 
