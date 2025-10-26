@@ -52,9 +52,7 @@ export const saveWaterQualityData = async (record: Omit<WaterQualityRecord, 'id'
 export const getHistoricalData = async (limit: number = 100): Promise<WaterQualityRecord[]> => {
   try {
     const historyRef = ref(database, 'waterQualityHistory');
-    const historyQuery = query(historyRef, orderByChild('savedAt'), limitToLast(limit));
-
-    const snapshot = await get(historyQuery);
+    const snapshot = await get(historyRef);
 
     if (!snapshot.exists()) {
       console.log('Không có dữ liệu trong Firebase History');
@@ -62,29 +60,38 @@ export const getHistoricalData = async (limit: number = 100): Promise<WaterQuali
     }
 
     const data = snapshot.val();
+    console.log('Dữ liệu thô từ Firebase:', data);
+
     const records: WaterQualityRecord[] = [];
 
     Object.keys(data).forEach(key => {
       const item = data[key];
-      records.push({
-        id: item.id || key,
-        timestamp: item.timestamp,
-        temperature: parseFloat(item.temperature) || 0,
-        turbidity: parseFloat(item.turbidity) || 0,
-        salinity: parseFloat(item.salinity) || 0,
-      });
+      console.log('Item từ Firebase:', item);
+
+      if (item && typeof item === 'object') {
+        records.push({
+          id: item.id || key,
+          timestamp: item.timestamp || 'N/A',
+          temperature: parseFloat(item.temperature) || 0,
+          turbidity: parseFloat(item.turbidity) || 0,
+          salinity: parseFloat(item.salinity) || 0,
+        });
+      }
     });
 
     records.sort((a, b) => {
-      const timeA = new Date(a.timestamp).getTime();
-      const timeB = new Date(b.timestamp).getTime();
-      return timeA - timeB;
+      return 0;
     });
 
-    console.log(`Đã tải ${records.length} bản ghi từ Firebase`);
-    return records;
+    const limitedRecords = records.slice(-limit);
+    console.log(`Đã tải ${limitedRecords.length} bản ghi từ Firebase`);
+    console.log('Bản ghi đầu tiên:', limitedRecords[0]);
+    console.log('Bản ghi cuối cùng:', limitedRecords[limitedRecords.length - 1]);
+
+    return limitedRecords;
   } catch (error) {
     console.error('Error fetching historical data:', error);
+    console.error('Chi tiết lỗi:', error);
     return [];
   }
 };

@@ -29,8 +29,10 @@ const AIChat: React.FC<AIChatProps> = ({ data, onDataRefresh }) => {
 
   const refreshData = async () => {
     setIsRefreshing(true);
+    console.log('Bắt đầu tải dữ liệu từ Firebase...');
     try {
       const freshData = await getHistoricalData(100);
+      console.log('Dữ liệu nhận được:', freshData);
       setLocalData(freshData);
       if (onDataRefresh) {
         onDataRefresh(freshData);
@@ -38,7 +40,7 @@ const AIChat: React.FC<AIChatProps> = ({ data, onDataRefresh }) => {
 
       const refreshMessage: ChatMessage = {
         role: 'model',
-        content: `Đã cập nhật dữ liệu mới nhất! Hiện có ${freshData.length} bản ghi từ Firebase.`,
+        content: `Đã cập nhật dữ liệu mới nhất!\n\nSố bản ghi: ${freshData.length}\n\n${freshData.length > 0 ? `Dữ liệu gần nhất:\n- Nhiệt độ: ${freshData[freshData.length - 1].temperature}°C\n- Độ đục: ${freshData[freshData.length - 1].turbidity} NTU\n- Độ mặn: ${freshData[freshData.length - 1].salinity} ppt\n- Thời gian: ${freshData[freshData.length - 1].timestamp}` : 'Chưa có dữ liệu trong Firebase.'}`,
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, refreshMessage]);
@@ -46,7 +48,7 @@ const AIChat: React.FC<AIChatProps> = ({ data, onDataRefresh }) => {
       console.error('Lỗi khi làm mới dữ liệu:', error);
       const errorMessage: ChatMessage = {
         role: 'model',
-        content: 'Không thể tải dữ liệu mới. Vui lòng thử lại.',
+        content: `Không thể tải dữ liệu mới.\n\nLỗi: ${error}\n\nVui lòng kiểm tra:\n1. Kết nối Firebase\n2. Console log để xem chi tiết`,
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, errorMessage]);
