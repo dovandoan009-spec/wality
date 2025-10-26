@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { WaterQualityRecord } from '../types';
-import { subscribeToLiveData } from '../services/firebaseService';
+import { subscribeToLiveData, saveWaterQualityData } from '../services/firebaseService';
 import DataCard from './DataCard';
 import DataChart from './DataChart';
 import { TemperatureIcon, TurbidityIcon, SalinityIcon, LiveIcon } from './icons/Icons';
 
-const MAX_DATA_POINTS = 20; // Keep the last 20 data points for the chart
+const MAX_DATA_POINTS = 20;
+const SAVE_INTERVAL = 60000;
 
 const Live: React.FC = () => {
   const [liveData, setLiveData] = useState<WaterQualityRecord[]>([]);
+  const [lastSavedTime, setLastSavedTime] = useState<number>(0);
 
   useEffect(() => {
-    const unsubscribe = subscribeToLiveData((newRecord) => {
+    const unsubscribe = subscribeToLiveData(async (newRecord) => {
       setLiveData(prevData => {
         const newData = [...prevData, newRecord];
         if (newData.length > MAX_DATA_POINTS) {
@@ -19,11 +21,26 @@ const Live: React.FC = () => {
         }
         return newData;
       });
+
+      const now = Date.now();
+      if (now - lastSavedTime >= SAVE_INTERVAL) {
+        try {
+          await saveWaterQualityData({
+            timestamp: newRecord.timestamp,
+            temperature: newRecord.temperature,
+            turbidity: newRecord.turbidity,
+            salinity: newRecord.salinity,
+          });
+          setLastSavedTime(now);
+          console.log('Đã lưu dữ liệu vào Firebase');
+        } catch (error) {
+          console.error('Lỗi khi lưu dữ liệu:', error);
+        }
+      }
     });
 
-    // Clean up subscription on component unmount
     return () => unsubscribe();
-  }, []);
+  }, [lastSavedTime]);
 
   const latestRecord = liveData.length > 0 ? liveData[liveData.length - 1] : null;
 

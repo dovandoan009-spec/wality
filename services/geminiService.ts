@@ -20,13 +20,17 @@ export const getAIResponse = async (
       return "Chức năng AI chưa được cấu hình. Vui lòng thêm VITE_GEMINI_API_KEY vào file .env để sử dụng tính năng này.";
     }
 
+    const dataInfo = data.length > 0
+      ? `Có ${data.length} bản ghi dữ liệu chất lượng nước.\n\nDữ liệu gần nhất:\n${JSON.stringify(data.slice(-10), null, 2)}\n\nTóm tắt:\n- Nhiệt độ: Trung bình ${(data.reduce((sum, d) => sum + d.temperature, 0) / data.length).toFixed(1)}°C\n- Độ đục: Trung bình ${(data.reduce((sum, d) => sum + d.turbidity, 0) / data.length).toFixed(1)} NTU\n- Độ mặn: Trung bình ${(data.reduce((sum, d) => sum + d.salinity, 0) / data.length).toFixed(1)} ppt`
+      : "Hiện không có dữ liệu lịch sử.";
+
     const fullPrompt = `
-      Dưới đây là dữ liệu chất lượng nước hiện tại:
-      ${data.length > 0 ? JSON.stringify(data, null, 2) : "Hiện không có dữ liệu."}
+      Dưới đây là dữ liệu chất lượng nước từ hệ thống giám sát:
+      ${dataInfo}
 
       Yêu cầu của người dùng: "${prompt}"
 
-      Hãy phân tích và trả lời yêu cầu này.
+      Hãy phân tích chi tiết và trả lời yêu cầu này dựa trên dữ liệu thực tế đã được thu thập.
     `;
 
     const response = await ai.models.generateContent({
