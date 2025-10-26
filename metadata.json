@@ -1,0 +1,5 @@
+{
+  "name": "Hệ Thống Giám Sát Chất Lượng Nước",
+  "description": "Một ứng dụng web để giám sát chất lượng nước tại Vĩnh Long, Việt Nam. Ứng dụng này hiển thị các chỉ số quan trọng như nhiệt độ, độ đục, và độ mặn trên một bảng điều khiển trực quan. Nó còn tích hợp AI Gemini để cung cấp phân tích, cảnh báo và dự đoán về chất lượng nước, giúp người dùng đưa ra quyết định kịp thời.",
+  "requestFramePermissions": []
+}
