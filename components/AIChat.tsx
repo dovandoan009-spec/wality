@@ -40,7 +40,7 @@ const AIChat: React.FC<AIChatProps> = ({ data, onDataRefresh }) => {
 
       const refreshMessage: ChatMessage = {
         role: 'model',
-        content: `Đã cập nhật dữ liệu mới nhất!\n\nSố bản ghi: ${freshData.length}\n\n${freshData.length > 0 ? `Dữ liệu gần nhất:\n- Nhiệt độ: ${freshData[freshData.length - 1].temperature}°C\n- Độ đục: ${freshData[freshData.length - 1].turbidity} NTU\n- Độ mặn: ${freshData[freshData.length - 1].salinity} ppt\n- Thời gian: ${freshData[freshData.length - 1].timestamp}` : 'Chưa có dữ liệu trong Firebase.'}`,
+        content: `Đã cập nhật dữ liệu mới nhất!\n\nSố bản ghi: ${freshData.length}\n\n${freshData.length > 0 ? `Dữ liệu gần nhất:\n- Nhiệt độ: ${freshData[freshData.length - 1].temperature}°C\n- Độ đục: ${freshData[freshData.length - 1].turbidity*1000} NTU\n- Độ mặn: ${freshData[freshData.length - 1].salinity} ppt\n- Thời gian: ${freshData[freshData.length - 1].timestamp}` : 'Chưa có dữ liệu trong Firebase.'}`,
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, refreshMessage]);
