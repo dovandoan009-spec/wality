@@ -12,7 +12,7 @@ export const subscribeToLiveData = (callback: (record: WaterQualityRecord) => vo
         id: data.id || `live_${Date.now()}`,
         timestamp: data.timestamp || new Date().toLocaleTimeString('vi-VN'),
         temperature: parseFloat(data.temperature) || 0,
-        turbidity: parseFloat(data.turbidity) || 0,
+        turbidity: (parseFloat(data.turbidity) || 0) / 100,
         salinity: parseFloat(data.salinity) || 0,
       };
       callback(record);
@@ -73,7 +73,7 @@ export const getHistoricalData = async (limit: number = 100): Promise<WaterQuali
           id: item.id || key,
           timestamp: item.timestamp || 'N/A',
           temperature: parseFloat(item.temperature) || 0,
-          turbidity: parseFloat(item.turbidity) || 0,
+          turbidity: (parseFloat(item.turbidity) || 0) / 100,
           salinity: parseFloat(item.salinity) || 0,
         });
       }
