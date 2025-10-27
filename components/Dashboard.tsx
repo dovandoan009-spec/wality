@@ -88,7 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, setData }) => {
             />
             <DataCard
               title="Độ đục"
-              value={latestRecord.turbidity.toFixed(1)*1000}
+              value={latestRecord.turbidity.toFixed(1)}
               unit="NTU"
               icon={<TurbidityIcon className="w-8 h-8 text-yellow-600" />}
             />
