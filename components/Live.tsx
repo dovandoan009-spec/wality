@@ -26,14 +26,18 @@ const Live: React.FC = () => {
       const now = Date.now();
       if (now - lastSavedTime >= SAVE_INTERVAL) {
         try {
-          await saveWaterQualityData({
+          const saved = await saveWaterQualityData({
             timestamp: newRecord.timestamp,
             temperature: newRecord.temperature,
             turbidity: newRecord.turbidity,
             salinity: newRecord.salinity,
           });
           setLastSavedTime(now);
-          console.log('Đã lưu dữ liệu vào Firebase');
+          if (saved) {
+            console.log('Đã lưu dữ liệu mới vào Firebase');
+          } else {
+            console.log('Đã có dữ liệu hôm nay, bỏ qua lần lưu này');
+          }
         } catch (error) {
           console.error('Lỗi khi lưu dữ liệu:', error);
         }
@@ -50,16 +54,23 @@ const Live: React.FC = () => {
 
     setIsSaving(true);
     try {
-      await saveWaterQualityData({
+      const saved = await saveWaterQualityData({
         timestamp: latestRecord.timestamp,
         temperature: latestRecord.temperature,
         turbidity: latestRecord.turbidity,
         salinity: latestRecord.salinity,
       });
       setLastSavedTime(Date.now());
-      console.log('Đã lưu dữ liệu thủ công vào Firebase:', latestRecord);
+      if (saved) {
+        alert('Đã lưu dữ liệu mới vào Firebase!');
+        console.log('Đã lưu dữ liệu thủ công vào Firebase:', latestRecord);
+      } else {
+        alert('Đã có dữ liệu cho ngày hôm nay. Chỉ lưu 1 lần mỗi ngày.');
+        console.log('Đã có dữ liệu hôm nay');
+      }
     } catch (error) {
       console.error('Lỗi khi lưu dữ liệu thủ công:', error);
+      alert('Lỗi khi lưu dữ liệu. Vui lòng thử lại.');
     } finally {
       setIsSaving(false);
     }

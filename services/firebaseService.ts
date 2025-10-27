@@ -31,8 +31,36 @@ export const unsubscribeFromLiveData = () => {
   off(dataRef);
 };
 
-export const saveWaterQualityData = async (record: Omit<WaterQualityRecord, 'id'>): Promise<void> => {
+const getLastSavedDate = async (): Promise<string | null> => {
   try {
+    const lastSavedRef = ref(database, 'lastSavedDate');
+    const snapshot = await get(lastSavedRef);
+    return snapshot.exists() ? snapshot.val() : null;
+  } catch (error) {
+    console.error('Error getting last saved date:', error);
+    return null;
+  }
+};
+
+const setLastSavedDate = async (date: string): Promise<void> => {
+  try {
+    const lastSavedRef = ref(database, 'lastSavedDate');
+    await set(lastSavedRef, date);
+  } catch (error) {
+    console.error('Error setting last saved date:', error);
+  }
+};
+
+export const saveWaterQualityData = async (record: Omit<WaterQualityRecord, 'id'>): Promise<boolean> => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const lastSaved = await getLastSavedDate();
+
+    if (lastSaved === today) {
+      console.log(`Đã lưu dữ liệu hôm nay (${today}). Bỏ qua lần lưu này.`);
+      return false;
+    }
+
     const historyRef = ref(database, 'waterQualityHistory');
     const newRecordRef = push(historyRef);
 
@@ -40,9 +68,14 @@ export const saveWaterQualityData = async (record: Omit<WaterQualityRecord, 'id'
       ...record,
       id: newRecordRef.key,
       savedAt: new Date().toISOString(),
+      date: today,
     };
 
     await set(newRecordRef, dataToSave);
+    await setLastSavedDate(today);
+
+    console.log(`Đã lưu dữ liệu mới cho ngày ${today}`);
+    return true;
   } catch (error) {
     console.error('Error saving water quality data:', error);
     throw error;
