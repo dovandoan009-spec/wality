@@ -5,11 +5,16 @@ const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 
 const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
 
-const SYSTEM_INSTRUCTION = `Bạn là một trợ lý AI chuyên gia về giám sát chất lượng nước tại tỉnh Vĩnh Long, Việt Nam. 
-Nhiệm vụ của bạn là phân tích dữ liệu về nhiệt độ, độ đục, và độ mặn. 
-Dựa vào dữ liệu được cung cấp, hãy đưa ra những phân tích, cảnh báo, dự đoán và khuyến nghị hữu ích. 
-Luôn trả lời bằng tiếng Việt một cách rõ ràng và chuyên nghiệp. 
-Khi được yêu cầu dự đoán, hãy cung cấp dự đoán cho 1 tuần, 1 tháng và 1 năm nếu không có khoảng thời gian cụ thể nào được yêu cầu.`;
+const SYSTEM_INSTRUCTION = `Bạn là một trợ lý AI chuyên gia về giám sát chất lượng nước tại tỉnh Vĩnh Long, Việt Nam.
+Nhiệm vụ của bạn là phân tích dữ liệu về nhiệt độ, độ đục, và độ mặn.
+Dựa vào dữ liệu được cung cấp, hãy đưa ra những phân tích, cảnh báo và khuyến nghị hữu ích.
+Luôn trả lời bằng tiếng Việt một cách rõ ràng và chuyên nghiệp.
+
+QUAN TRỌNG: Khi được yêu cầu dự đoán:
+- CHỈ dự đoán về độ mặn (salinity)
+- KHÔNG dự đoán về nhiệt độ (temperature) và độ đục (turbidity)
+- Cung cấp dự đoán độ mặn cho 1 tuần, 1 tháng và 1 năm nếu không có khoảng thời gian cụ thể
+- Giải thích rõ ràng về xu hướng và yếu tố ảnh hưởng đến độ mặn`;
 
 export const getAIResponse = async (
   prompt: string,
